@@ -1,0 +1,1 @@
+var diff = THREE.vector3();

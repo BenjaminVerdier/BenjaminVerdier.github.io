@@ -3,6 +3,9 @@ var WIDTH, HEIGHT, VIEW_ANGLE, ASPECT, NEAR, FAR;
 
 var baseballBat, baseball, plane;
 
+Physijs.scripts.worker = 'physijs_worker.js';
+Physijs.scripts.ammo = 'ammo.js';
+
 init();
 animate();
 
@@ -46,12 +49,13 @@ function init() {
     camControls.lookSpeed = 0.1;
     camControls.movementSpeed = 20;
     camControls.noFly = true;
-    camControls.lookVertical = true;
+    //camControls.lookVertical = true;
     //camControls.constrainVertical = true;
     //camControls.verticalMin = 1.0;
     //camControls.verticalMax = 2.0;
-    camControls.lon = -150;
-    camControls.lat = 120;
+    camControls.lon = -135;
+    //camControls.lat = 120;
+    camControls.enabled = false;
 
 	light = new THREE.DirectionalLight(0xffffff);
 

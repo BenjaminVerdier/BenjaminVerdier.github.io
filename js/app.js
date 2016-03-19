@@ -1,95 +1,135 @@
-var scene, camera, renderer;
+var container, scene, renderer, camera, light, clock, loader;
+var WIDTH, HEIGHT, VIEW_ANGLE, ASPECT, NEAR, FAR;
 
 
+var plane;
 
-// set the scene size
-var WIDTH = window.innerWidth,
-  HEIGHT = window.innerHeight;
+container = document.body;
 
-// set some camera attributes
-var VIEW_ANGLE = 45,
-  ASPECT = WIDTH / HEIGHT,
-  NEAR = 0.1,
-  FAR = 10000;
+clock = new THREE.Clock();
 
-// create a WebGL renderer, camera
-// and a scene
-var renderer = new THREE.WebGLRenderer();
-var camera =
-  new THREE.PerspectiveCamera(
-    VIEW_ANGLE,
-    ASPECT,
-    NEAR,
-    FAR);
+WIDTH = window.innerWidth,
+HEIGHT = window.innerHeight;
 
-var scene = new THREE.Scene();
+VIEW_ANGLE = 45,
+ASPECT = WIDTH / HEIGHT,
+NEAR = 1,
+FAR = 10000;
 
-// add the camera to the scene
+scene = new THREE.Scene();
+
+renderer = new THREE.WebGLRenderer({antialias: true});
+
+renderer.setSize(WIDTH, HEIGHT);
+renderer.shadowMap.enabled = true;
+renderer.shadowMapSoft = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
+renderer.shadowMapAutoUpdate = true;
+renderer.setClearColor(0xffffff, 1);
+
+container.appendChild(renderer.domElement);
+
+camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+
+camera.position.set(0, 300, 500);
+camera.rotation.x = -Math.PI / 6;
+
 scene.add(camera);
 
-// the camera starts at 0,0,0
-// so pull it back
-camera.position.z = 300;
 
-// start the renderer
-renderer.setSize(WIDTH, HEIGHT);
+var controls = new THREE.TrackballControls( camera );
+controls.rotateSpeed = 1.0;
+controls.zoomSpeed = 1.2;
+controls.panSpeed = 0.8;
+controls.noZoom = false;
+controls.noPan = false;
+controls.staticMoving = true;
+controls.dynamicDampingFactor = 0.3;
+controls.keys = [ 65, 83, 68 ];
+controls.addEventListener( 'change', render );
+
+light = new THREE.DirectionalLight(0xffffff);
+
+light.position.set(0, 100, 0);
+light.castShadow = true;
+light.shadow.camera.left = -60;
+light.shadow.camera.top = -60;
+light.shadow.camera.right = 60;
+light.shadow.camera.bottom = 60;
+light.shadow.camera.near = 1;
+light.shadow.camera.far = 1000;
+light.shadow.bias = -.0001
+light.shadow.mapSize.width = light.shadow.mapSize.height = 1024;
+light.shadowDarkness = .7;
+
+scene.add(light);
 
 window.addEventListener('resize', function() {
-      var WIDTH = window.innerWidth,
-          HEIGHT = window.innerHeight;
-      renderer.setSize(WIDTH, HEIGHT);
-      camera.aspect = WIDTH / HEIGHT;
-      camera.updateProjectionMatrix();
-    });
+  var WIDTH = window.innerWidth,
+      HEIGHT = window.innerHeight;
+  renderer.setSize(WIDTH, HEIGHT);
+  camera.aspect = WIDTH / HEIGHT;
+  camera.updateProjectionMatrix();
+});
 
-// attach the render-supplied DOM element
-document.body.appendChild(renderer.domElement);
 
-var loader = new THREE.JSONLoader();
-    loader.load( "resources/treehouse_logo.js", function(geometry){
-      var material = new THREE.MeshLambertMaterial({color: 0x55B663});
-      var mesh = new THREE.Mesh(geometry, material);
-      scene.add(mesh);
-    });
-/*
-// set up the sphere vars
-var radius = 50,
-    segments = 16,
-    rings = 16;
 
-// create a new mesh with
-// sphere geometry - we will cover
-// the sphereMaterial next!
-var sphere = new THREE.Mesh(
+var planeGeo = new THREE.PlaneGeometry( 100000, 100000, 1, 1 );
+var floorTexture = new THREE.ImageUtils.loadTexture( 'resources/textures/tiles.jpg' );
+floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
+floorTexture.repeat.set( 1000, 1000 );
+var planeMat = new THREE.MeshPhongMaterial( {map: floorTexture, side: THREE.DoubleSide});
+plane = new THREE.Mesh( planeGeo, planeMat);
+plane.rotation.x += Math.PI/2
+plane.receiveShadow = true;
+scene.add(plane);
 
-  new THREE.SphereGeometry(
-    radius,
-    segments,
-    rings),
+var ballGeo = new THREE.SphereGeometry( 25, 32, 32 );
+var ballTexture = new THREE.ImageUtils.loadTexture( 'resources/textures/baseball.jpg' );
+var ballMat = new THREE.MeshLambertMaterial( {map: ballTexture} );
+var baseball = new THREE.Mesh( ballGeo, ballMat );
+baseball.position.y += 50;
+baseball.castShadow = true;
+scene.add( baseball );
 
-  sphereMaterial);
 
-// add the sphere to the scene
-scene.add(sphere);
-*/
-// create the sphere's material
-var sphereMaterial =
-  new THREE.MeshLambertMaterial(
-    {
-      color: 0xCC0000
-    });
+loader = new THREE.JSONLoader();
+var baseballBat;
+var batTexture = new THREE.ImageUtils.loadTexture( 'resources/textures/woodBat.jpg' );
+loader.load("/resources/jsModels/baseball_bat.json", function (geometry, materials) {
+  var material = new THREE.MeshLambertMaterial({
+    map: batTexture
+  });
 
-  // create a point light
-var pointLight =
-  new THREE.PointLight(0xFFFFFF);
+  baseballBat = new THREE.Mesh(
+    geometry,
+    material
+  );
 
-// set its position
-pointLight.position.x = 10;
-pointLight.position.y = 50;
-pointLight.position.z = 130;
+  baseballBat.scale.x *= 100;
+  baseballBat.scale.y *= 100;
+  baseballBat.scale.z *= 100;
 
-// add to the scene
-scene.add(pointLight);
+  baseballBat.position.y -= 50;
+  baseballBat.position.x -= 100;
 
-// draw!
-renderer.render(scene, camera);
+  baseballBat.castShadow = true;
+
+  scene.add(baseballBat);
+});
+
+render();
+
+function render() {
+ var time = clock.getElapsedTime();
+
+ renderer.render(scene, camera);
+ requestAnimationFrame(render);
+}
+
+function animate() {
+	requestAnimationFrame(animate);
+	controls.update();
+}
+
+animate();

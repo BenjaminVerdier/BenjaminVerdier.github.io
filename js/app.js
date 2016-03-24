@@ -3,8 +3,10 @@ var WIDTH, HEIGHT, VIEW_ANGLE, ASPECT, NEAR, FAR;
 
 var baseballBat, baseball, plane;
 
-Physijs.scripts.worker = 'physijs_worker.js';
+Physijs.scripts.worker = 'js/physijs_worker.js';
 Physijs.scripts.ammo = 'ammo.js';
+
+var keyboard = new THREEx.KeyboardState();
 
 init();
 animate();
@@ -23,7 +25,15 @@ function init() {
 	NEAR = 1,
 	FAR = 100;
 
-	scene = new THREE.Scene();
+	scene = new Physijs.Scene({ fixedTimeStep: 1 / 120 });
+    scene.setGravity(new THREE.Vector3( 0, -30, 0 ));
+    scene.addEventListener(
+        'update',
+        function() {
+            scene.simulate( undefined, 2 );
+        });
+
+	//scene = new THREE.Scene();
 
 	scene.fog = new THREE.FogExp2( 0xcccccc, 0.002 );
 
@@ -87,11 +97,17 @@ function init() {
 
 
 	var planeGeo = new THREE.PlaneGeometry( 100, 100, 1, 1 );
+
 	var floorTexture = new THREE.ImageUtils.loadTexture( 'resources/textures/tiles.jpg' );
 	floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
 	floorTexture.repeat.set( 100, 100 );
-	var planeMat = new THREE.MeshPhongMaterial( {map: floorTexture, side: THREE.DoubleSide});
-	plane = new THREE.Mesh( planeGeo, planeMat);
+
+	var planeMat = new Physijs.createMaterial(
+		new THREE.MeshLambertMaterial( {map: floorTexture, side: THREE.DoubleSide}),
+		.8,	// Friction
+		1. ); //Restitution
+
+	plane = new Physijs.BoxMesh( planeGeo, planeMat, 0 /*mass*/);
 	plane.rotation.x += Math.PI/2
 	plane.receiveShadow = true;
 	scene.add(plane);
@@ -99,12 +115,13 @@ function init() {
 	var ballGeo = new THREE.SphereGeometry( 1, 32, 32 );
 	var ballTexture = new THREE.ImageUtils.loadTexture( 'resources/textures/baseball.jpg' );
 	var ballMat = new THREE.MeshLambertMaterial( {map: ballTexture} );
-	baseball = new THREE.Mesh( ballGeo, ballMat );
+	baseball = new Physijs.SphereMesh( ballGeo, ballMat, 5, {restitution: 0.5} );
 	baseball.position.y += 5;
 	baseball.castShadow = true;
+	baseball.receiveShadow = true;
 	scene.add( baseball );
 
-
+/*
 	loader = new THREE.JSONLoader();
 	var batTexture = new THREE.ImageUtils.loadTexture( 'resources/textures/woodBat.jpg' );
 	loader.load("/resources/jsModels/baseball_bat.json", function (geometry, materials) {
@@ -129,9 +146,9 @@ function init() {
 	  scene.add(baseballBat);
 	});
 
+*/
 	render();
 }
-
 function render() {
 	var delta = clock.getDelta();
 	camControls.update(delta);
@@ -141,8 +158,14 @@ function render() {
 }
 
 function animate() {
+	update();
+	scene.simulate();
 	var delta = clock.getDelta();
 	camControls.update(delta);
 	requestAnimationFrame(animate);
 	renderer.render(scene, camera);
 }
+
+function update(){
+
+    }

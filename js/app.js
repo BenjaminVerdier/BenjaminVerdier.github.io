@@ -3,6 +3,11 @@ var WIDTH, HEIGHT, VIEW_ANGLE, ASPECT, NEAR, FAR;
 
 var baseballBat, baseball, plane;
 
+var armBase, armFirstPortion;
+var armControl;
+
+var gui;
+
 Physijs.scripts.worker = 'js/physijs_worker.js';
 Physijs.scripts.ammo = 'ammo.js';
 
@@ -13,6 +18,11 @@ animate();
 
 
 function init() {
+	armControl = {
+		baseRotX: 0,
+		baseRotY: 0,
+		baseRotZ:0
+	}
 	container = document.body;
 
 	clock = new THREE.Clock();
@@ -50,11 +60,18 @@ function init() {
 
 	camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
 
-	camera.position.set(49, 10, 49);
+	camera.position.set(20, 5, 20);
 	camera.rotation.y = Math.PI/4;
 
 	scene.add(camera);
-
+	
+	gui = new dat.GUI();
+	var baseRot = gui.addFolder("Rotation of base");
+	baseRot.add(armControl, 'baseRotX', -Math.PI/2, Math.PI/2);
+	baseRot.add(armControl, 'baseRotY', -Math.PI/ Math.PI);
+	baseRot.add(armControl, 'baseRotZ', -Math.PI/2, Math.PI/2);
+	
+/*
 	camControls = new THREE.FirstPersonControls(camera);
     camControls.lookSpeed = 0.1;
     camControls.movementSpeed = 20;
@@ -66,7 +83,11 @@ function init() {
     camControls.lon = -135;
     //camControls.lat = 120;
     camControls.enabled = false;
+*/
 
+	camControls = new THREE.OrbitControls( camera );
+  	camControls.addEventListener( 'change', render );
+  	
 	light = new THREE.DirectionalLight(0xffffff);
 
 	light.position.set(0, 100, 0);
@@ -83,7 +104,7 @@ function init() {
 
 
 	scene.add(light);
-
+/*
 	window.addEventListener('resize', function() {
 	  var WIDTH = window.innerWidth,
 	      HEIGHT = window.innerHeight;
@@ -93,7 +114,7 @@ function init() {
 	  camControls.handleResize();
 	  render();
 	});
-
+*/
 
 
 	var planeGeo = new THREE.PlaneGeometry( 100, 100, 1, 1 );
@@ -112,6 +133,7 @@ function init() {
 	plane.receiveShadow = true;
 	scene.add(plane);
 
+/*
 	var ballGeo = new THREE.SphereGeometry( 1, 32, 32 );
 	var ballTexture = new THREE.ImageUtils.loadTexture( 'resources/textures/baseball.jpg' );
 	var ballMat = new THREE.MeshLambertMaterial( {map: ballTexture} );
@@ -120,6 +142,18 @@ function init() {
 	baseball.castShadow = true;
 	baseball.receiveShadow = true;
 	scene.add( baseball );
+*/	
+	
+	var armBaseGeo = new THREE.SphereGeometry( 1, 32, 32);
+	var armBaseMat = new THREE.MeshLambertMaterial( {color: 0x555555} );
+	armBase = new THREE.Mesh(armBaseGeo, armBaseMat);
+	scene.add(armBase);
+	
+	var armFirstPortionGeo = new THREE.CylinderGeometry( .5, .5, 10, 32 );
+	var armFirstPortionMat = new THREE.MeshLambertMaterial( {color: 0x555555} );
+	armFirstPortion = new THREE.Mesh(armFirstPortionGeo, armFirstPortionMat);
+	armFirstPortion.position.y += 5.8;
+	armBase.add(armFirstPortion);
 
 /*
 	loader = new THREE.JSONLoader();
@@ -149,11 +183,8 @@ function init() {
 */
 	render();
 }
+
 function render() {
-	var delta = clock.getDelta();
-	camControls.update(delta);
-	renderer.clear();
-	requestAnimationFrame(render);
 	renderer.render(scene, camera);
 }
 
@@ -161,11 +192,15 @@ function animate() {
 	update();
 	scene.simulate();
 	var delta = clock.getDelta();
-	camControls.update(delta);
+	camControls.update();
 	requestAnimationFrame(animate);
+	
 	renderer.render(scene, camera);
+	
 }
 
 function update(){
-
-    }
+	armBase.rotation.x = armControl.baseRotX;
+	armBase.rotation.y = armControl.baseRotY;
+	armBase.rotation.z = armControl.baseRotZ;
+}

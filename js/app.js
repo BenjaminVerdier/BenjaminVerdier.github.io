@@ -1,28 +1,84 @@
+/*global Physijs THREE keyboardJS dat*/
+
 var container, scene, renderer, camera, light, clock, loader, camControls;
 var WIDTH, HEIGHT, VIEW_ANGLE, ASPECT, NEAR, FAR;
 
 var baseballBat, baseball, plane;
 
-var armBase, armFirstPortion;
+var armBase, armFirstPortion, armFirstJoint, armSecondPortion, armSecondJoint, armThirdPortion, armThirdJoint;
 var armControl;
 
 var gui;
 
+var cameraInitx, cameraInity, cameraInitz, cameraInitRoty;
+cameraInitx = 20;
+cameraInity = 10;
+cameraInitz = 20;
+cameraInitRoty =  Math.PI/4;
+
 Physijs.scripts.worker = 'js/physijs_worker.js';
 Physijs.scripts.ammo = 'ammo.js';
 
-var keyboard = new THREEx.KeyboardState();
 
 init();
 animate();
 
+function buildArm() {
+	var armBaseGeo = new THREE.SphereGeometry( 1, 32, 32);
+	var armBaseMat = new THREE.MeshLambertMaterial( {color: 0x00ff00
+	} );
+	armBase = new THREE.Mesh(armBaseGeo, armBaseMat);
+	armBase.castShadow = true;
+	scene.add(armBase);
+	
+	var armPortionGeo = new THREE.CylinderGeometry( .5, .5, 6, 32 );
+	var armPortionMat = new THREE.MeshLambertMaterial( {color: 0x0000ff} );
+	armFirstPortion = new THREE.Mesh(armPortionGeo, armPortionMat);
+	armFirstPortion.position.y += 4;
+	armFirstPortion.castShadow = true;
+	armBase.add(armFirstPortion);
+
+	var armJointGeo = new THREE.CylinderGeometry(0.6, 0.6, 1, 32);
+	var armJointMat = new THREE.MeshLambertMaterial( {color: 0xff0000});
+	armFirstJoint = new THREE.Mesh(armJointGeo, armJointMat);
+	armFirstJoint.position.y = 7.6;
+	armFirstJoint.rotation.x = Math.PI/2;
+	armFirstJoint.castShadow = true;
+	armBase.add(armFirstJoint);
+	
+	armSecondPortion = new THREE.Mesh(armPortionGeo, armPortionMat);
+	armSecondPortion.rotation.x = Math.PI/2;
+	armSecondPortion.position.z = -3.6;
+	armFirstJoint.add(armSecondPortion);
+	
+	armSecondJoint = new THREE.Mesh(armJointGeo, armJointMat);
+	armSecondJoint.position.z = -7.2;
+	armFirstJoint.add(armSecondJoint);
+	
+	armThirdPortion = new THREE.Mesh(armPortionGeo, armPortionMat);
+	armThirdPortion.position.z = -3.6;
+	armThirdPortion.rotation.x = Math.PI/2;
+	armSecondJoint.add(armThirdPortion);
+	
+}
 
 function init() {
-	armControl = {
-		baseRotX: 0,
-		baseRotY: 0,
-		baseRotZ:0
+	var armControls = function() {
+	//this.baseRotX = 0.01;
+	this.baseRotY = 0.01;
+	this.baseRotZ = 0.01;
+	this.FirstJointRot = 0.01;
+	this.SecondJointRot = 0.01;
+	
+	this.reset = function() {
+		//this.baseRotX = 0;
+		this.baseRotZ = 0;
+		this.baseRotY = 0;
+		this.FirstJointRot = Math.PI/3;
+		this.SecondJointRot = Math.PI/3;
 	}
+}
+	armControl = new armControls();
 	container = document.body;
 
 	clock = new THREE.Clock();
@@ -59,18 +115,27 @@ function init() {
 	container.appendChild(renderer.domElement);
 
 	camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
-
-	camera.position.set(20, 5, 20);
-	camera.rotation.y = Math.PI/4;
-
+	
+	camera.position.set(cameraInitx, cameraInity, cameraInitz);
+	camera.rotation.y = cameraInitRoty;
+	
 	scene.add(camera);
+	
+	keyboardJS.bind('space', function() {
+		camera.position.set(cameraInitx, cameraInity, cameraInitz);
+		camera.rotation.y = cameraInitRoty;
+	} );
 	
 	gui = new dat.GUI();
 	var baseRot = gui.addFolder("Rotation of base");
-	baseRot.add(armControl, 'baseRotX', -Math.PI/2, Math.PI/2);
-	baseRot.add(armControl, 'baseRotY', -Math.PI/ Math.PI);
-	baseRot.add(armControl, 'baseRotZ', -Math.PI/2, Math.PI/2);
-	
+	baseRot.open();
+	//baseRot.add(armControl, 'baseRotX', -Math.PI/2, Math.PI/2).step(.01).listen();
+	baseRot.add(armControl, 'baseRotY', -Math.PI, Math.PI).step(.01).listen();
+	baseRot.add(armControl, 'baseRotZ', -Math.PI/2, Math.PI/2).step(.01).listen();
+	gui.add(armControl, 'FirstJointRot', -5*Math.PI/6, 5*Math.PI/6).step(.01).listen();
+	gui.add(armControl, 'SecondJointRot', -5*Math.PI/6, 5*Math.PI/6).step(.01).listen();
+	gui.add(armControl, 'reset');
+	armControl.reset();
 /*
 	camControls = new THREE.FirstPersonControls(camera);
     camControls.lookSpeed = 0.1;
@@ -89,8 +154,8 @@ function init() {
   	camControls.addEventListener( 'change', render );
   	
 	light = new THREE.DirectionalLight(0xffffff);
-
-	light.position.set(0, 100, 0);
+	
+	light.position.set(100, 100, 100);
 	light.castShadow = true;
 	light.shadow.camera.left = -60;
 	light.shadow.camera.top = -60;
@@ -104,7 +169,7 @@ function init() {
 
 
 	scene.add(light);
-/*
+
 	window.addEventListener('resize', function() {
 	  var WIDTH = window.innerWidth,
 	      HEIGHT = window.innerHeight;
@@ -114,7 +179,7 @@ function init() {
 	  camControls.handleResize();
 	  render();
 	});
-*/
+
 
 
 	var planeGeo = new THREE.PlaneGeometry( 100, 100, 1, 1 );
@@ -144,17 +209,8 @@ function init() {
 	scene.add( baseball );
 */	
 	
-	var armBaseGeo = new THREE.SphereGeometry( 1, 32, 32);
-	var armBaseMat = new THREE.MeshLambertMaterial( {color: 0x555555} );
-	armBase = new THREE.Mesh(armBaseGeo, armBaseMat);
-	scene.add(armBase);
+	buildArm();
 	
-	var armFirstPortionGeo = new THREE.CylinderGeometry( .5, .5, 10, 32 );
-	var armFirstPortionMat = new THREE.MeshLambertMaterial( {color: 0x555555} );
-	armFirstPortion = new THREE.Mesh(armFirstPortionGeo, armFirstPortionMat);
-	armFirstPortion.position.y += 5.8;
-	armBase.add(armFirstPortion);
-
 /*
 	loader = new THREE.JSONLoader();
 	var batTexture = new THREE.ImageUtils.loadTexture( 'resources/textures/woodBat.jpg' );
@@ -200,7 +256,9 @@ function animate() {
 }
 
 function update(){
-	armBase.rotation.x = armControl.baseRotX;
+	//armBase.rotation.x = armControl.baseRotX;
 	armBase.rotation.y = armControl.baseRotY;
 	armBase.rotation.z = armControl.baseRotZ;
+	armFirstJoint.rotation.y = -armControl.FirstJointRot;
+	armSecondJoint.rotation.y = -armControl.SecondJointRot;
 }

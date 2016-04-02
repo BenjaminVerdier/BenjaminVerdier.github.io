@@ -43,7 +43,7 @@ function buildArm() {
 	var armJointGeo = new THREE.CylinderGeometry(0.6, 0.6, 1, 32);
 	var armJointMat = new THREE.MeshLambertMaterial( {color: 0xff0000});
 	armFirstJoint = new Physijs.CylinderMesh(armJointGeo, armJointMat);
-	armFirstJoint.position.y = 8.6;
+	armFirstJoint.position.y = 7.6;
 	armFirstJoint.rotation.x = Math.PI/2;
 	armFirstJoint.castShadow = true;
 	
@@ -122,15 +122,16 @@ function buildArm() {
 	})
 	
 	
-	/*scene.add(fingerAttach1);
-	scene.add(fingerAttach2);
-	scene.add(fingerAttach3);
-	scene.add(handBase);
-	scene.add(armThirdPortion);
-	scene.add(armSecondJoint);*/
+//	scene.add(fingerAttach1);
+//	scene.add(fingerAttach2);
+//	scene.add(fingerAttach3);
+//	scene.add(handBase);
+//	scene.add(armThirdPortion);
+//	scene.add(armSecondJoint);
 //	scene.add(armSecondPortion);
-//	scene.add(armFirstJoint);
+	armFirstPortion.add(armFirstJoint);
 	scene.add(armFirstPortion);
+	//scene.add(armFirstPortion);
 	scene.add(armBase);
 	/*
 	var fingerMat = new THREE.MeshLambertMaterial({
@@ -155,48 +156,87 @@ function buildArm() {
 
 function keyBindings(){
 	keyboardJS.bind("a", function(e){
-		armBase.constraintGlobal.configureAngularMotor(1,-Math.PI, Math.PI, 1, 1);
-		armBase.constraintGlobal.enableAngularMotor(1);
+		armBase.setAngularVelocity(new THREE.Vector3(0,0,1));
 	},function(e) {
-		armBase.constraintGlobal.configureAngularMotor(1,-Math.PI, Math.PI, 0, 1);
-		armBase.constraintGlobal.enableAngularMotor(1);
+		armBase.setAngularVelocity(new THREE.Vector3(0,0,0));
+		armBase.setLinearVelocity(new THREE.Vector3(0,0,0));
 	});
 	keyboardJS.bind("z", function(e){
-		armBase.constraintGlobal.configureAngularMotor(1,-Math.PI, Math.PI, -1, 1);
-		armBase.constraintGlobal.enableAngularMotor(1);
+		armBase.setAngularVelocity(new THREE.Vector3(0,0,-1));
 	},function(e) {
-		armBase.constraintGlobal.configureAngularMotor(1,-Math.PI, Math.PI, 0, 1);
-		armBase.constraintGlobal.enableAngularMotor(1);
+		armBase.setAngularVelocity(new THREE.Vector3(0,0,0));
+		armBase.setLinearVelocity(new THREE.Vector3(0,0,0));
 	});
 	keyboardJS.bind("e", function(e){
-		armBase.constraintGlobal.configureAngularMotor(3,-Math.PI, Math.PI, 1, 1);
-		armBase.constraintGlobal.enableAngularMotor(3);
+		armFirstPortion.setAngularVelocity(new THREE.Vector3(0,1,0));
 	},function(e) {
-		armBase.constraintGlobal.configureAngularMotor(3,-Math.PI, Math.PI, 0, 1);
-		armBase.constraintGlobal.enableAngularMotor(3);
+		armFirstPortion.setAngularVelocity(new THREE.Vector3(0,0,0));
+		armFirstPortion.setLinearVelocity(new THREE.Vector3(0,0,0));
 	});
 	keyboardJS.bind("r", function(e){
-		armBase.constraintGlobal.configureAngularMotor(3,-Math.PI, Math.PI, -1, 1);
-		armBase.constraintGlobal.enableAngularMotor(3);
+		armFirstPortion.setAngularVelocity(new THREE.Vector3(0,0,-1));
 	},function(e) {
-		armBase.constraintGlobal.configureAngularMotor(3,-Math.PI, Math.PI, 0, 1);
-		armBase.constraintGlobal.enableAngularMotor(3);
+		armFirstPortion.setAngularVelocity(new THREE.Vector3(0,0,0));
+		armFirstPortion.setLinearVelocity(new THREE.Vector3(0,0,0));
 	});
 }
 
 function setConstraints() {
+	
 	armBase.constraintGlobal = new Physijs.DOFConstraint(armBase, new THREE.Vector3(0,1,0));
 	scene.addConstraint(armBase.constraintGlobal);
-	armBase.constraintGlobal.setAngularLowerLimit(0, 0, -Math.PI/2);
-	armBase.constraintGlobal.setAngularUpperLimit(0, 0, Math.PI/2);
+	armBase.constraintGlobal.setAngularLowerLimit(new THREE.Vector3(0, -Math.PI, -Math.PI));
+	armBase.constraintGlobal.setAngularUpperLimit(new THREE.Vector3(0, Math.PI, Math.PI));
 	
-	armFirstPortion.constraintBase = new Physijs.DOFConstraint(armBase, armFirstPortion, new THREE.Vector3(0,2,0));
-	scene.addConstraint(armFirstPortion.constraintBase);
-	armFirstPortion.constraintBase.setAngularLowerLimit(-Math.PI/2,0,0);
-	armFirstPortion.constraintBase.setAngularUpperLimit(Math.PI/2,0,0);/*
-	armFirstPortion.constrainty = new Physijs.HingeConstraint(armFirstPortion, new THREE.Vector3(0,1,0), new THREE.Vector3(0,1,0));
-	scene.addConstraint(armFirstPortion.constrainty);*/
+	armBase.constraintPortion = new Physijs.PointConstraint(armBase, armFirstPortion, new THREE.Vector3(0,2,0));
+	scene.addConstraint(armBase.constraintPortion);
+	/*
+	armBase.constraintz = new Physijs.HingeConstraint(armBase, new THREE.Vector3(0,1,0), new THREE.Vector3(0,0,1));
+	scene.addConstraint(armBase.constraintz);
 	
+	/*
+	armFirstPortion.constraintGlobal = new Physijs.DOFConstraint(armFirstPortion, new THREE.Vector3(0,2,0));
+	scene.addConstraint(armFirstPortion.constraintGlobal);
+	armFirstPortion.constraintGlobal.setLinearLowerLimit(0, 0, 0);
+	armFirstPortion.constraintGlobal.setLinearUpperLimit(0, 0,0);
+	armFirstPortion.constraintGlobal.setAngularLowerLimit(0, 0, 0);
+	armFirstPortion.constraintGlobal.setAngularUpperLimit(0, 0,0);
+	/*
+	armFirstJoint.constraintGlobal = new Physijs.DOFConstraint(armFirstJoint, armFirstPortion, new THREE.Vector3(0,8,0));
+	scene.addConstraint(armFirstJoint.constraintGlobal);
+	armFirstJoint.constraintGlobal.setLinearLowerLimit(0, 0, 0);
+	armFirstJoint.constraintGlobal.setLinearUpperLimit(0, 0,0);
+	armFirstJoint.constraintGlobal.setAngularLowerLimit(0, 0, 0);
+	armFirstJoint.constraintGlobal.setAngularUpperLimit(0, 0,0);
+	
+	armSecondPortion.constraintGlobal = new Physijs.DOFConstraint(armFirstJoint, armSecondPortion, new THREE.Vector3(0,9.2,0));
+	scene.addConstraint(armSecondPortion.constraintGlobal);
+	armSecondPortion.constraintGlobal.setLinearLowerLimit(0, 0, 0);
+	armSecondPortion.constraintGlobal.setLinearUpperLimit(0, 0,0);
+	armSecondPortion.constraintGlobal.setAngularLowerLimit(0, 0, 0);
+	armSecondPortion.constraintGlobal.setAngularUpperLimit(0, 0,0);
+	
+	armSecondJoint.constraintGlobal = new Physijs.DOFConstraint(armSecondJoint, armSecondPortion, new THREE.Vector3(0,15.2,0));
+	scene.addConstraint(armSecondJoint.constraintGlobal);
+	armSecondJoint.constraintGlobal.setLinearLowerLimit(0, 0, 0);
+	armSecondJoint.constraintGlobal.setLinearUpperLimit(0, 0,0);
+	armSecondJoint.constraintGlobal.setAngularLowerLimit(0, 0, 0);
+	armSecondJoint.constraintGlobal.setAngularUpperLimit(0, 0,0);
+	
+	armThirdPortion.constraintGlobal = new Physijs.DOFConstraint(armSecondJoint, armThirdPortion, new THREE.Vector3(0,15.8,0));
+	scene.addConstraint(armThirdPortion.constraintGlobal);
+	armThirdPortion.constraintGlobal.setLinearLowerLimit(0, 0, 0);
+	armThirdPortion.constraintGlobal.setLinearUpperLimit(0, 0,0);
+	armThirdPortion.constraintGlobal.setAngularLowerLimit(0, 0, 0);
+	armThirdPortion.constraintGlobal.setAngularUpperLimit(0, 0,0);
+	
+	handBase.constraintGlobal = new Physijs.DOFConstraint(handBase, armThirdPortion, new THREE.Vector3(0,21.8,0));
+	scene.addConstraint(handBase.constraintGlobal);
+	handBase.constraintGlobal.setLinearLowerLimit(0, 0, 0);
+	handBase.constraintGlobal.setLinearUpperLimit(0, 0,0);
+	handBase.constraintGlobal.setAngularLowerLimit(0, 0, 0);
+	handBase.constraintGlobal.setAngularUpperLimit(0, 0,0);
+	*/
 }
 
 function init() {

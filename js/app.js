@@ -5,7 +5,7 @@ var WIDTH, HEIGHT, VIEW_ANGLE, ASPECT, NEAR, FAR;
 
 var baseballBat, baseball, plane;
 
-var armBase, armFirstPortion, armFirstJoint, armSecondPortion, armSecondJoint, armThirdPortion, armThirdJoint;
+var armBase, armFirstPortion, armFirstJoint, armSecondPortion, armSecondJoint, armThirdPortion, armThirdJoint, handBase;
 var armControl;
 
 var gui;
@@ -49,17 +49,29 @@ function buildArm() {
 	armSecondPortion = new THREE.Mesh(armPortionGeo, armPortionMat);
 	armSecondPortion.rotation.x = Math.PI/2;
 	armSecondPortion.position.z = -3.6;
+	armSecondPortion.castShadow = true;
 	armFirstJoint.add(armSecondPortion);
 	
 	armSecondJoint = new THREE.Mesh(armJointGeo, armJointMat);
 	armSecondJoint.position.z = -7.2;
+	armSecondJoint.castShadow = true;
 	armFirstJoint.add(armSecondJoint);
 	
 	armThirdPortion = new THREE.Mesh(armPortionGeo, armPortionMat);
 	armThirdPortion.position.z = -3.6;
 	armThirdPortion.rotation.x = Math.PI/2;
+	armThirdPortion.castShadow = true;
 	armSecondJoint.add(armThirdPortion);
 	
+	var handBaseGeo = new THREE.SphereGeometry( 0.6, 32, 32);
+	var handBaseMat = new THREE.MeshLambertMaterial( {color: 0x00ff00} );
+	handBase = new THREE.Mesh(armBaseGeo, armBaseMat);
+	armBase.castShadow = true;
+	handBase.castShadow = true;
+	handBase.position.z = -7.2;
+	armSecondJoint.add(handBase);
+
+
 }
 
 function init() {

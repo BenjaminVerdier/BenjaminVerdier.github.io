@@ -5,7 +5,8 @@ var WIDTH, HEIGHT, VIEW_ANGLE, ASPECT, NEAR, FAR;
 
 var baseballBat, baseball, plane;
 
-var armBase, armFirstPortion, armFirstJoint, armSecondPortion, armSecondJoint, armThirdPortion, armThirdJoint, handBase;
+var armBase, armBaseBis, armFirstPortion, armFirstJoint, armSecondPortion, armSecondJoint, armThirdPortion, handBase, finger1, finger2, finger3,
+	fingerAttach1, fingerAttach2, fingerAttach3;
 var armControl;
 
 var gui;
@@ -27,67 +28,191 @@ function buildArm() {
 	var armBaseGeo = new THREE.SphereGeometry( 1, 32, 32);
 	var armBaseMat = new THREE.MeshLambertMaterial( {color: 0x00ff00
 	} );
-	armBase = new THREE.Mesh(armBaseGeo, armBaseMat);
+	armBase = new Physijs.SphereMesh(armBaseGeo, armBaseMat, 1);
 	armBase.castShadow = true;
-	scene.add(armBase);
+	armBase.position.y += 1;
+	
+	
 	
 	var armPortionGeo = new THREE.CylinderGeometry( .5, .5, 6, 32 );
 	var armPortionMat = new THREE.MeshLambertMaterial( {color: 0x0000ff} );
-	armFirstPortion = new THREE.Mesh(armPortionGeo, armPortionMat);
-	armFirstPortion.position.y += 4;
+	armFirstPortion = new Physijs.CylinderMesh(armPortionGeo, armPortionMat, 1);
+	armFirstPortion.position.y += 5;
 	armFirstPortion.castShadow = true;
-	armBase.add(armFirstPortion);
 
 	var armJointGeo = new THREE.CylinderGeometry(0.6, 0.6, 1, 32);
 	var armJointMat = new THREE.MeshLambertMaterial( {color: 0xff0000});
-	armFirstJoint = new THREE.Mesh(armJointGeo, armJointMat);
-	armFirstJoint.position.y = 7.6;
+	armFirstJoint = new Physijs.CylinderMesh(armJointGeo, armJointMat);
+	armFirstJoint.position.y = 8.6;
 	armFirstJoint.rotation.x = Math.PI/2;
 	armFirstJoint.castShadow = true;
-	armBase.add(armFirstJoint);
 	
-	armSecondPortion = new THREE.Mesh(armPortionGeo, armPortionMat);
-	armSecondPortion.rotation.x = Math.PI/2;
-	armSecondPortion.position.z = -3.6;
+	armSecondPortion = new Physijs.CylinderMesh(armPortionGeo, armPortionMat);
+	//armSecondPortion.rotation.z = Math.PI/2;
+	armSecondPortion.position.y = 12.2;
 	armSecondPortion.castShadow = true;
-	armFirstJoint.add(armSecondPortion);
 	
-	armSecondJoint = new THREE.Mesh(armJointGeo, armJointMat);
-	armSecondJoint.position.z = -7.2;
+	armSecondJoint = new Physijs.CylinderMesh(armJointGeo, armJointMat);
+	armSecondJoint.position.y = 17;
 	armSecondJoint.castShadow = true;
-	armFirstJoint.add(armSecondJoint);
 	
-	armThirdPortion = new THREE.Mesh(armPortionGeo, armPortionMat);
-	armThirdPortion.position.z = -3.6;
+	armThirdPortion = new Physijs.CylinderMesh(armPortionGeo, armPortionMat);
+	armThirdPortion.position.y = 23;
 	armThirdPortion.rotation.x = Math.PI/2;
 	armThirdPortion.castShadow = true;
-	armSecondJoint.add(armThirdPortion);
 	
 	var handBaseGeo = new THREE.SphereGeometry( 0.6, 32, 32);
 	var handBaseMat = new THREE.MeshLambertMaterial( {color: 0x00ff00} );
-	handBase = new THREE.Mesh(armBaseGeo, armBaseMat);
+	handBase = new Physijs.SphereMesh(handBaseGeo, handBaseMat);
 	armBase.castShadow = true;
 	handBase.castShadow = true;
 	handBase.position.z = -7.2;
-	armSecondJoint.add(handBase);
+	
+	fingerAttach1 = new Physijs.BoxMesh(new THREE.BoxGeometry( 0.001, 0.001, 0.001 ), new THREE.MeshBasicMaterial({color:0x000000}), 0);
+	fingerAttach2 = new Physijs.BoxMesh(new THREE.BoxGeometry( 0.001, 0.001, 0.001 ), new THREE.MeshBasicMaterial({color:0x000000}), 0);
+	fingerAttach3 = new Physijs.BoxMesh(new THREE.BoxGeometry( 0.001, 0.001, 0.001 ), new THREE.MeshBasicMaterial({color:0x000000}), 0);
+	
+	loader = new THREE.JSONLoader();
+	loader.load("/resources/jsModels/finger.json", function (fingerGeo, materials) {
+	  var fingerMat = new THREE.MeshLambertMaterial({
+	    color: 0xaaaaaa
+	  });
 
+	  finger1 = new Physijs.ConcaveMesh(
+	    fingerGeo,
+	    fingerMat,
+	    5, {restitution: 0.5}
+	  );
+	  finger1.castShadow = true;
+	  finger1.scale.x *= 2;
+	  finger1.scale.y *= 2;
+	  finger1.scale.z *= 2;
+	  finger1.position.x = 0.6;
+	  finger1.rotation.x = Math.PI/2;
+	  fingerAttach1.add(finger1);
+	  
+	  finger2 = new Physijs.ConcaveMesh(
+	    fingerGeo,
+	    fingerMat,
+	    5, {restitution: 0.5}
+	  );
+	  finger2.castShadow = true;
+	  finger2.scale.x *= 2;
+	  finger2.scale.y *= 2;
+	  finger2.scale.z *= 2;
+	  finger2.position.x = 0.6;
+	  finger2.rotation.x = Math.PI/2;
+	  fingerAttach2.rotation.z += 2*Math.PI/3;
+	  fingerAttach2.add(finger2);
+	  
+	  finger3 = new Physijs.ConcaveMesh(
+	    fingerGeo,
+	    fingerMat,
+	    5, {restitution: 0.5}
+	  );
+	  finger3.castShadow = true;
+	  finger3.scale.x *= 2;
+	  finger3.scale.y *= 2;
+	  finger3.scale.z *= 2;
+	  finger3.position.x = 0.6;
+	  finger3.rotation.x = Math.PI/2;
+	  fingerAttach3.rotation.z -= 2*Math.PI/3;
+	  fingerAttach3.add(finger3);
+		
+	})
+	
+	
+	/*scene.add(fingerAttach1);
+	scene.add(fingerAttach2);
+	scene.add(fingerAttach3);
+	scene.add(handBase);
+	scene.add(armThirdPortion);
+	scene.add(armSecondJoint);*/
+//	scene.add(armSecondPortion);
+//	scene.add(armFirstJoint);
+	scene.add(armFirstPortion);
+	scene.add(armBase);
+	/*
+	var fingerMat = new THREE.MeshLambertMaterial({
+	    color: 0xaaaaaa
+	  });
+	var fingerPortionGeo = new THREE.CylinderGeometry(0.15,0.15,1, 32);
+	var fingerJointGeo = new THREE.SphereGeometry(0.5, 32, 32);
+	
+	var finger1FirstPortion = new Physijs.CylinderMesh(fingerPortionGeo, fingerMat, 5, {restitution: 0.5});
+	//finger1FirstPortion.position.x = 1.1;
+	//finger1FirstPortion.rotation.z = Math.PI/2;
+	//ingerAttach1.add(finger1FirstPortion);
+	finger1FirstPortion.position.x += 10;
+	finger1FirstPortion.position.z -= 1;
+	finger1FirstPortion.position.y += 5;
+	var finger1FirstJoint = new THREE.Mesh(fingerJointGeo, fingerMat);
+	plane.add(finger1FirstPortion);*/
+	
+	
+	
+}
 
+function keyBindings(){
+	keyboardJS.bind("a", function(e){
+		armBase.constraintGlobal.configureAngularMotor(1,-Math.PI, Math.PI, 1, 1);
+		armBase.constraintGlobal.enableAngularMotor(1);
+	},function(e) {
+		armBase.constraintGlobal.configureAngularMotor(1,-Math.PI, Math.PI, 0, 1);
+		armBase.constraintGlobal.enableAngularMotor(1);
+	});
+	keyboardJS.bind("z", function(e){
+		armBase.constraintGlobal.configureAngularMotor(1,-Math.PI, Math.PI, -1, 1);
+		armBase.constraintGlobal.enableAngularMotor(1);
+	},function(e) {
+		armBase.constraintGlobal.configureAngularMotor(1,-Math.PI, Math.PI, 0, 1);
+		armBase.constraintGlobal.enableAngularMotor(1);
+	});
+	keyboardJS.bind("e", function(e){
+		armBase.constraintGlobal.configureAngularMotor(3,-Math.PI, Math.PI, 1, 1);
+		armBase.constraintGlobal.enableAngularMotor(3);
+	},function(e) {
+		armBase.constraintGlobal.configureAngularMotor(3,-Math.PI, Math.PI, 0, 1);
+		armBase.constraintGlobal.enableAngularMotor(3);
+	});
+	keyboardJS.bind("r", function(e){
+		armBase.constraintGlobal.configureAngularMotor(3,-Math.PI, Math.PI, -1, 1);
+		armBase.constraintGlobal.enableAngularMotor(3);
+	},function(e) {
+		armBase.constraintGlobal.configureAngularMotor(3,-Math.PI, Math.PI, 0, 1);
+		armBase.constraintGlobal.enableAngularMotor(3);
+	});
+}
+
+function setConstraints() {
+	armBase.constraintGlobal = new Physijs.DOFConstraint(armBase, new THREE.Vector3(0,1,0));
+	scene.addConstraint(armBase.constraintGlobal);
+	armBase.constraintGlobal.setAngularLowerLimit(0, 0, -Math.PI/2);
+	armBase.constraintGlobal.setAngularUpperLimit(0, 0, Math.PI/2);
+	
+	armFirstPortion.constraintBase = new Physijs.DOFConstraint(armBase, armFirstPortion, new THREE.Vector3(0,2,0));
+	scene.addConstraint(armFirstPortion.constraintBase);
+	armFirstPortion.constraintBase.setAngularLowerLimit(-Math.PI/2,0,0);
+	armFirstPortion.constraintBase.setAngularUpperLimit(Math.PI/2,0,0);/*
+	armFirstPortion.constrainty = new Physijs.HingeConstraint(armFirstPortion, new THREE.Vector3(0,1,0), new THREE.Vector3(0,1,0));
+	scene.addConstraint(armFirstPortion.constrainty);*/
+	
 }
 
 function init() {
 	var armControls = function() {
 	//this.baseRotX = 0.01;
-	this.baseRotY = 0.01;
-	this.baseRotZ = 0.01;
-	this.FirstJointRot = 0.01;
-	this.SecondJointRot = 0.01;
+	this.baseRotY = -0.37;
+	this.baseRotZ = -0.18;
+	this.FirstJointRot = 1.07;
+	this.SecondJointRot = 1.81;
 	
 	this.reset = function() {
 		//this.baseRotX = 0;
-		this.baseRotZ = 0;
-		this.baseRotY = 0;
-		this.FirstJointRot = Math.PI/3;
-		this.SecondJointRot = Math.PI/3;
+		this.baseRotY = 0.;
+		this.baseRotZ = 0.;
+		this.FirstJointRot = 0;//Math.PI/3;
+		this.SecondJointRot = 0;//Math.PI/3;
 	}
 }
 	armControl = new armControls();
@@ -196,17 +321,18 @@ function init() {
 
 	var planeGeo = new THREE.PlaneGeometry( 100, 100, 1, 1 );
 
-	var floorTexture = new THREE.ImageUtils.loadTexture( 'resources/textures/tiles.jpg' );
-	floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
-	floorTexture.repeat.set( 100, 100 );
+	//var floorTexture = new THREE.ImageUtils.loadTexture( 'resources/textures/tiles.jpg' );
+//floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
+//	floorTexture.repeat.set( 100, 100 );
 
 	var planeMat = new Physijs.createMaterial(
-		new THREE.MeshLambertMaterial( {map: floorTexture, side: THREE.DoubleSide}),
+		new THREE.MeshLambertMaterial( {color: 0xffffff, side: THREE.DoubleSide}),
 		.8,	// Friction
 		1. ); //Restitution
 
 	plane = new Physijs.BoxMesh( planeGeo, planeMat, 0 /*mass*/);
-	plane.rotation.x += Math.PI/2
+	plane.rotation.x += Math.PI/2;
+	//plane.rotation.x += 0.2;
 	plane.receiveShadow = true;
 	scene.add(plane);
 
@@ -214,14 +340,19 @@ function init() {
 	var ballGeo = new THREE.SphereGeometry( 1, 32, 32 );
 	var ballTexture = new THREE.ImageUtils.loadTexture( 'resources/textures/baseball.jpg' );
 	var ballMat = new THREE.MeshLambertMaterial( {map: ballTexture} );
-	baseball = new Physijs.SphereMesh( ballGeo, ballMat, 5, {restitution: 0.5} );
-	baseball.position.y += 5;
+	baseball = new Physijs.SphereMesh( ballGeo, ballMat, 5 );
+	baseball.position.y += 30;
+	//baseball.position.x += 0.2;
 	baseball.castShadow = true;
 	baseball.receiveShadow = true;
 	scene.add( baseball );
-*/	
+*/
 	
 	buildArm();
+	scene.add(plane);
+	
+	setConstraints();
+	keyBindings();
 	
 /*
 	loader = new THREE.JSONLoader();
@@ -269,8 +400,11 @@ function animate() {
 
 function update(){
 	//armBase.rotation.x = armControl.baseRotX;
-	armBase.rotation.y = armControl.baseRotY;
+	/*
+	armBase.rotation.set(0, armControl.baseRotY, armControl.baseRotZ);
 	armBase.rotation.z = armControl.baseRotZ;
 	armFirstJoint.rotation.y = -armControl.FirstJointRot;
 	armSecondJoint.rotation.y = -armControl.SecondJointRot;
+	*/
+	
 }

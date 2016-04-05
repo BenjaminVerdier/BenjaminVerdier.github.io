@@ -60,60 +60,7 @@
 			});
 		-->
 		</script>
-		<style type="text/css">
-		<!--
-		body {
-			font-family: Helvetica, Verdana, Arial, sans-serif;
-			background-color: white;
-			color: black;
-			text-align: center;
-		}
-		a:link, a:visited {
-			color: #000;
-		}
-		a:active, a:hover {
-			color: #666;
-		}
-		p.header {
-			font-size: small;
-		}
-		p.header span {
-			font-weight: bold;
-		}
-		p.footer {
-			font-size: x-small;
-		}
-		div.content {
-			margin: auto;
-			width: 960px;
-		}
-		div.broken,
-		div.missing {
-			margin: auto;
-			position: relative;
-			top: 50%;
-			width: 193px;
-		}
-		div.broken a,
-		div.missing a {
-			height: 63px;
-			position: relative;
-			top: -31px;
-		}
-		div.broken img,
-		div.missing img {
-			border-width: 0px;
-		}
-		div.broken {
-			display: none;
-		}
-		div#unityPlayer {
-			cursor: default;
-			height: 600px;
-			width: 960px;
-		}
-		-->
-		</style>
+		<link rel="stylesheet" type="text/css" href="indexStyle.css">
 	</head>
 	<body>
 		<p class="header"><span>Unity Web Player | </span>RobotStuff</p>
@@ -132,13 +79,29 @@
 			</div>
 		</div>
 		<p class="instructionsTitle" style="font-weight: bolder">Instructions</p>
-		<p class="instructions">
+		<div class="instructions">
+			Camera<br>
+			<div class="subInstr">
+			You can toggle Camera movement by pressing C.<br>
 			You can control the Camera using your mouse. Scroll to zoom in/out.<br>
+			</div>
+			Arm: manual mode <br>
+			<div class="subInstr">
 			To move the arm around the Y axis, use the left and right Arrows of your keyboard.<br>
 			To move each joint, use Q/W for the lower one, A/S for the middle one, Z/X for the upper one.<br>
 			To clench/release the 'hand', use Space/Left Control.<br>
-			To spawn a ball randomly, press B.
-		</p>
+			</div>
+			Arm: auto mode<br>
+			<div class="subInstr">
+			Use the slider to move the target. Note that the Y-axis rotation can only be modified in manual mode.<br>
+			Use the buttons to reset the target or open/close the hand.
+			</div>
+			Other<br>
+			<div class="subInstr">
+			To spawn a ball randomly, press B.<br>
+			To change mode, use the Mode button.
+			</div>
+		</div>
 		<p class="footer">&laquo; created with <a href="http://unity3d.com/unity/" title="Go to unity3d.com">Unity</a> &raquo;</p>
 	</body>
 </html>
